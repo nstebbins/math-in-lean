@@ -21,16 +21,19 @@ variable (α β γ : Type*)
 variable (f : α ≃ β) (g : β ≃ γ)
 
 #check Equiv α β
+#check f.toFun
 #check (f.toFun : α → β)
 #check (f.invFun : β → α)
+#check f.right_inv
 #check (f.right_inv : ∀ x : β, f (f.invFun x) = x)
 #check (f.left_inv : ∀ x : α, f.invFun (f x) = x)
 #check (Equiv.refl α : α ≃ α)
 #check (f.symm : β ≃ α)
+#check f.symm
 #check (f.trans g : α ≃ γ)
 
-example (x : α) : (f.trans g).toFun x = g.toFun (f.toFun x) :=
-  rfl
+example (x : α) : (f.trans g).toFun x = g.toFun (f.toFun x) := by
+  rfl  -- the trans function is basically just g ∘ f if you look in the def
 
 example (x : α) : (f.trans g) x = g (f x) :=
   rfl
@@ -43,6 +46,18 @@ end
 example (α : Type*) : Equiv.Perm α = (α ≃ α) :=
   rfl
 
+-- proving some basic theorems about equivalence relations
+section test
+-- variable (α β γ : Type*)
+-- variable (f : α ≃ β) (g : β ≃ γ)
+
+-- symm just gives you a function that goes the other way
+-- and satisfies all of the same Equiv properties like
+example {α β : Type*} (f : α ≃ β) : f = f.symm.symm := by
+  rfl
+
+end test
+
 def permGroup {α : Type*} : Group₁ (Equiv.Perm α)
     where
   mul f g := Equiv.trans g f
@@ -54,24 +69,59 @@ def permGroup {α : Type*} : Group₁ (Equiv.Perm α)
   mul_left_inv := Equiv.self_trans_symm
 
 structure AddGroup₁ (α : Type*) where
-  (add : α → α → α)
+  add : α → α → α
+  zero : α
+  inv : α → α
+  add_assoc : ∀ x y z : α, add (add x y) z = add x (add y z)
+  add_zero : ∀ x : α, add x zero = x
+  zero_add : ∀ x : α, add zero x = x
+  add_left_inv : ∀ x : α, add (inv x) x = zero
   -- fill in the rest
+
 @[ext]
 structure Point where
-  x : ℝ
-  y : ℝ
-  z : ℝ
+  x : Int
+  y : Int
+  z : Int
+  deriving Repr
 
 namespace Point
 
 def add (a b : Point) : Point :=
   ⟨a.x + b.x, a.y + b.y, a.z + b.z⟩
 
-def neg (a : Point) : Point := sorry
+def neg (a : Point) : Point := ⟨-1 * a.x, -1 * a.y, -1 * a.z⟩
 
-def zero : Point := sorry
+def p := Point.mk 4 3 2
 
-def addGroupPoint : AddGroup₁ Point := sorry
+#check neg
+#check add
+
+#eval add p p
+#eval neg p
+
+def zero : Point := ⟨0, 0, 0⟩
+
+-- showing that the group axioms hold for the Point type
+def addGroupPoint : AddGroup₁ Point where
+  add := Point.add
+  zero := Point.zero
+  inv := Point.neg
+  add_assoc := by
+    intros x y z
+    ext
+    case x =>
+      simp [add]
+      rw [add_assoc]
+    case y =>
+      simp [add]
+      rw [add_assoc]
+    case z =>
+      simp [add]
+      rw [add_assoc]
+  add_zero := by sorry
+  zero_add := by sorry
+  add_left_inv := by sorry
 
 end Point
 
@@ -83,6 +133,7 @@ variable {α : Type*} (f g : Equiv.Perm α) (n : ℕ)
 
 -- group power, defined for any group
 #check g ^ n
+
 
 example : f * g * g⁻¹ = f := by rw [mul_assoc, mul_right_inv, mul_one]
 

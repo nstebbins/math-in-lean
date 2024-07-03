@@ -13,6 +13,27 @@ structure Point where
 
 #check Point.ext
 
+structure OrderedPair (α: Type*) where
+  x: α
+  y: α
+  deriving Repr
+
+def add (a b: OrderedPair Nat): OrderedPair Nat :=
+  ⟨a.x + b.x, a.y + b.y⟩
+
+def add2 (a b: OrderedPair Nat): OrderedPair Nat :=
+  OrderedPair.mk (a.x + b.x) (a.y + b.y)
+
+def add3 (a b: OrderedPair Nat): OrderedPair Nat where
+  x := a.x + b.x
+  y := a.y + b.y
+
+def one: OrderedPair Nat := ⟨1, 2⟩
+def two: OrderedPair Nat := ⟨10, 10⟩
+#eval add one two
+#eval add2 one two
+#eval add3 one two
+
 example (a b : Point) (hx : a.x = b.x) (hy : a.y = b.y) (hz : a.z = b.z) : a = b := by
   ext
   repeat' assumption
@@ -40,6 +61,23 @@ namespace Point
 def add (a b : Point) : Point :=
   ⟨a.x + b.x, a.y + b.y, a.z + b.z⟩
 
+@[ext]
+structure MyPoint where
+  a : ℕ
+  b : ℕ
+  deriving Repr
+
+def testPoint: MyPoint := ⟨1, 2⟩
+
+example (p q: MyPoint) : p.a = q.a ∧ p.b = q.b → p = q := by
+  intro h  -- h : p.a = q.a ∧ p.b = q.b
+  cases' h with l r  -- l : p.a = q.a, r : p.b = q.b
+  ext  -- goal is to prove p.a = q.a and p.b = q.b
+  repeat' assumption
+
+#eval testPoint
+#eval testPoint.a
+
 def add' (a b : Point) : Point where
   x := a.x + b.x
   y := a.y + b.y
@@ -54,6 +92,12 @@ end Point
 #check myPoint1.add myPoint2
 
 namespace Point
+
+theorem point_add_comm (a b : Point) : add a b = add b a := by
+  repeat rw [Point.add]
+  ext <;> dsimp;
+  repeat rw [add_comm]
+
 
 protected theorem add_comm (a b : Point) : add a b = add b a := by
   rw [add, add]
@@ -86,11 +130,25 @@ protected theorem add_assoc (a b c : Point) : (a.add b).add c = a.add (b.add c) 
 def smul (r : ℝ) (a : Point) : Point :=
   sorry
 
+#check smul
+def testPoint2: Point := smul 2 myPoint1
+
 theorem smul_distrib (r : ℝ) (a b : Point) :
     (smul r a).add (smul r b) = smul r (a.add b) := by
   sorry
 
 end Point
+
+@[ext]
+structure BigNumber where
+x : ℕ
+y : ℕ
+h : x ≥ 1000
+h₂ : y ≥ 1000
+deriving Repr
+
+#eval BigNumber.mk 1000 1000 (by norm_num) (by norm_num)
+-- #eval BigNumber.mk 10 10  -- cannot do this
 
 structure StandardTwoSimplex where
   x : ℝ
@@ -121,6 +179,22 @@ def midpoint (a b : StandardTwoSimplex) : StandardTwoSimplex
   y := (a.y + b.y) / 2
   z := (a.z + b.z) / 2
   x_nonneg := div_nonneg (add_nonneg a.x_nonneg b.x_nonneg) (by norm_num)
+  y_nonneg := div_nonneg (add_nonneg a.y_nonneg b.y_nonneg) (by norm_num)
+  z_nonneg := div_nonneg (add_nonneg a.z_nonneg b.z_nonneg) (by norm_num)
+  sum_eq := by field_simp; linarith [a.sum_eq, b.sum_eq]
+
+def midpointTest (a b : StandardTwoSimplex) : StandardTwoSimplex where
+  x := (a.x + b.x) / 2
+  y := (a.y + b.y) / 2
+  z := (a.z + b.z) / 2
+  x_nonneg := by
+    have h : a.x ≥ 0 := by
+      exact a.x_nonneg
+    have h₂ : b.x ≥ 0 := by
+      exact b.x_nonneg
+    have h₃ : a.x + b.x ≥ 0 := by
+      linarith
+    exact div_nonneg h₃ (by norm_num) -- two proofs required
   y_nonneg := div_nonneg (add_nonneg a.y_nonneg b.y_nonneg) (by norm_num)
   z_nonneg := div_nonneg (add_nonneg a.z_nonneg b.z_nonneg) (by norm_num)
   sum_eq := by field_simp; linarith [a.sum_eq, b.sum_eq]
@@ -175,6 +249,8 @@ def Point'' :=
 def IsLinear' (f : ℝ → ℝ) :=
   (∀ x y, f (x + y) = f x + f y) ∧ ∀ x c, f (c * x) = c * f x
 
+#check IsLinear'
+
 def PReal :=
   { y : ℝ // 0 < y }
 
@@ -206,4 +282,3 @@ variable (s : StdSimplex)
 #check s.2
 
 end
-
