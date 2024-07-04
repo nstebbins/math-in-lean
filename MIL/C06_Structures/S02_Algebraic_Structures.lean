@@ -12,6 +12,18 @@ structure Group₁ (α : Type*) where
   one_mul : ∀ x : α, mul one x = x
   mul_left_inv : ∀ x : α, mul (inv x) x = one
 
+structure NonnegativeGroup (n : Nat) where
+  V : Fin n → Nat
+  bigger_than_two : ∀ i : Fin n, V i ≥ 2
+
+def myNonnegGroup : NonnegativeGroup 3 where
+  V := fun i => i + 2
+  bigger_than_two := by
+    intros i
+    apply Nat.succ_le_succ
+    apply Nat.succ_le_succ
+    simp
+
 structure Group₁Cat where
   α : Type*
   str : Group₁ α
@@ -57,6 +69,13 @@ example {α β : Type*} (f : α ≃ β) : f = f.symm.symm := by
   rfl
 
 end test
+
+-- basically reverse engineering Equiv.refl
+def symm_one (α: Type*) : Equiv.Perm α where
+  toFun := fun x => x
+  invFun := fun x => x
+  left_inv := by sorry
+  right_inv := by sorry
 
 def permGroup {α : Type*} : Group₁ (Equiv.Perm α)
     where
@@ -119,9 +138,21 @@ def addGroupPoint : AddGroup₁ Point where
     case z =>
       simp [add]
       rw [add_assoc]
-  add_zero := by sorry
-  zero_add := by sorry
-  add_left_inv := by sorry
+  add_zero := by
+    intros x
+    rw [Point.add]
+    ext <;> simp
+    repeat rfl
+  zero_add := by
+    intros x
+    rw [Point.add]
+    ext <;> simp
+    repeat rfl
+  add_left_inv := by
+    intros x
+    rw [Point.neg, Point.add]
+    ext <;> simp
+    repeat rfl
 
 end Point
 
