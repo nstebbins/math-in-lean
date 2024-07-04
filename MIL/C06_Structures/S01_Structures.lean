@@ -28,11 +28,30 @@ def add3 (a b: OrderedPair Nat): OrderedPair Nat where
   x := a.x + b.x
   y := a.y + b.y
 
+def add4: OrderedPair Nat → OrderedPair Nat → OrderedPair Nat
+  | ⟨x₁, y₁⟩, ⟨x₂, y₂⟩ => ⟨x₁ + x₂, y₁ + y₂⟩
+
+def add5: OrderedPair Nat → OrderedPair Nat → OrderedPair Nat
+  | OrderedPair.mk x₁ y₁, OrderedPair.mk x₂ y₂ => OrderedPair.mk (x₁ + x₂) (y₁ + y₂)
+
+def add6 (x y: OrderedPair Nat): OrderedPair Nat :=
+  match x, y with
+  | ⟨x₁, y₁⟩, ⟨x₂, y₂⟩ => ⟨x₁ + x₂, y₁ + y₂⟩
+
+def addAlt : Point → Point → Point
+  | Point.mk x₁ y₁ z₁, Point.mk x₂ y₂ z₂ => ⟨x₁ + x₂, y₁ + y₂, z₁ + z₂⟩
+
+def addAlt' : Point → Point → Point
+  | ⟨x₁, y₁, z₁⟩, ⟨x₂, y₂, z₂⟩ => ⟨x₁ + x₂, y₁ + y₂, z₁ + z₂⟩
+
 def one: OrderedPair Nat := ⟨1, 2⟩
 def two: OrderedPair Nat := ⟨10, 10⟩
 #eval add one two
 #eval add2 one two
 #eval add3 one two
+#eval add4 one two
+#eval add5 one two
+#eval add6 one two
 
 example (a b : Point) (hx : a.x = b.x) (hy : a.y = b.y) (hz : a.z = b.z) : a = b := by
   ext
@@ -93,6 +112,11 @@ end Point
 
 namespace Point
 
+theorem point_add_comm2 (a b : Point) : add a b = add b a := by
+  repeat rw [Point.add]
+  ext <;> simp
+  <;> rw [add_comm]
+
 theorem point_add_comm (a b : Point) : add a b = add b a := by
   repeat rw [Point.add]
   ext <;> dsimp;
@@ -125,17 +149,25 @@ theorem addAlt_comm (a b : Point) : addAlt a b = addAlt b a := by
   repeat' apply add_comm
 
 protected theorem add_assoc (a b c : Point) : (a.add b).add c = a.add (b.add c) := by
-  sorry
+  repeat rw [Point.add]
+  ext <;> simp
+  repeat rw [add_assoc]
 
-def smul (r : ℝ) (a : Point) : Point :=
-  sorry
+def smul (r : ℝ) (a : Point) : Point where
+  x := r * a.x
+  y := r * a.y
+  z := r * a.z
 
 #check smul
 def testPoint2: Point := smul 2 myPoint1
 
 theorem smul_distrib (r : ℝ) (a b : Point) :
     (smul r a).add (smul r b) = smul r (a.add b) := by
-  sorry
+  repeat rw [Point.add]
+  repeat rw [Point.smul]
+  ext <;> simp
+  repeat rw [mul_add]
+
 
 end Point
 
@@ -158,6 +190,17 @@ structure StandardTwoSimplex where
   y_nonneg : 0 ≤ y
   z_nonneg : 0 ≤ z
   sum_eq : x + y + z = 1
+
+
+structure NonnegativeReal where
+  x : ℝ
+  nonneg : x ≥ 0
+
+protected def double(a: NonnegativeReal): NonnegativeReal where
+  x := 2 * a.x
+  nonneg := by
+    norm_num
+    exact a.nonneg
 
 namespace StandardTwoSimplex
 
@@ -200,8 +243,35 @@ def midpointTest (a b : StandardTwoSimplex) : StandardTwoSimplex where
   sum_eq := by field_simp; linarith [a.sum_eq, b.sum_eq]
 
 def weightedAverage (lambda : Real) (lambda_nonneg : 0 ≤ lambda) (lambda_le : lambda ≤ 1)
-    (a b : StandardTwoSimplex) : StandardTwoSimplex :=
-  sorry
+    (a b : StandardTwoSimplex) : StandardTwoSimplex where
+  x := lambda * a.x + (1 - lambda) * b.x
+  y := lambda * a.y + (1 - lambda) * b.y
+  z := lambda * a.z + (1 - lambda) * b.z
+  x_nonneg := by
+    apply add_nonneg
+    case ha =>
+      apply mul_nonneg
+      assumption
+      exact a.x_nonneg
+    case hb =>
+      apply mul_nonneg
+      norm_num
+      assumption
+      exact b.x_nonneg
+  y_nonneg := by
+    apply add_nonneg
+    <;> apply mul_nonneg
+    case ha.ha =>
+      assumption
+    case ha.hb =>
+      exact a.y_nonneg
+    case hb.ha =>
+      norm_num
+      assumption
+    case hb.hb =>
+      exact b.y_nonneg
+  z_nonneg := by sorry
+  sum_eq := by sorry
 
 end
 
