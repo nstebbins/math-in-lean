@@ -9,13 +9,17 @@ class One₁ (α : Type) where
   /-- The element one -/
   one : α
 
-
 #check One₁.one -- One₁.one {α : Type} [self : One₁ α] : α
+
+def oneNum: One₁ Nat := ⟨ 1 ⟩
+
+#eval oneNum.one -- wait, you can use a class like a structure?
 
 @[class] structure One₂ (α : Type) where
   /-- The element one -/
   one : α
 
+#check One₁.one -- One₁.one {α : Type} [self : One₁ α] : α
 #check One₂.one
 
 

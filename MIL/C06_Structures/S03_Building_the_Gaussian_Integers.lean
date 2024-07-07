@@ -9,8 +9,8 @@ structure gaussInt where
 
 namespace gaussInt
 
-instance : Zero gaussInt :=
-  ⟨⟨0, 0⟩⟩
+instance : Zero gaussInt where
+  zero := ⟨0, 0⟩
 
 instance : One gaussInt :=
   ⟨⟨1, 0⟩⟩
@@ -24,11 +24,19 @@ instance : Neg gaussInt :=
 instance : Mul gaussInt :=
   ⟨fun x y ↦ ⟨x.re * y.re - x.im * y.im, x.re * y.im + x.im * y.re⟩⟩
 
+/-
+  you can now use 1 & 0 as constants for One & Zero respectively
+-/
+
 theorem zero_def : (0 : gaussInt) = ⟨0, 0⟩ :=
   rfl
 
 theorem one_def : (1 : gaussInt) = ⟨1, 0⟩ :=
   rfl
+
+/-
+  you can now use +, -, * as infix operators for Add, Neg, Mul respectively
+-/
 
 theorem add_def (x y : gaussInt) : x + y = ⟨x.re + y.re, x.im + y.im⟩ :=
   rfl
