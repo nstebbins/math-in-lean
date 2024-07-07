@@ -1,4 +1,5 @@
 import Mathlib.Algebra.Group.Basic
+-- import Mathlib.Algebra.Group.Defs
 
 namespace Add
 
@@ -109,9 +110,25 @@ instance : Group (DirectProduct α) where
   mul_one := by sorry
   mul_left_inv := by sorry
 
-
-
-
-
-
 end GroupProd
+
+namespace SimpleClass
+
+class MulAssoc(α: Type) extends Mul α where
+  mul_assoc: ∀ a b c : α, (a * b) * c = a * (b * c)
+
+@[ext]
+structure Point where
+  x : Nat
+  y : Nat
+
+def mul (a b: Point): Point := ⟨a.x * b.x, a.y * b.y⟩
+
+instance : MulAssoc Point where
+  mul := mul
+  mul_assoc := by
+    intros a b c
+    ext
+    repeat apply Nat.mul_assoc
+
+end SimpleClass

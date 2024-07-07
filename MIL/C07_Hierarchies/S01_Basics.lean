@@ -117,11 +117,25 @@ example {M : Type} [Monoid₁ M] {a b c : M} (hba : b ⋄ a = 𝟙) (hac : a ⋄
   rw [← one_dia c, ← hba, dia_assoc, hac, dia_one b]
 
 
-lemma inv_eq_of_dia [Group₁ G] {a b : G} (h : a ⋄ b = 𝟙) : a⁻¹ = b :=
-  sorry
+lemma inv_eq_of_dia [Group₁ G] {a b : G} (h : a ⋄ b = 𝟙) : a⁻¹ = b := by
+  rw [← dia_one (a⁻¹)]
+  rw [← h]
+  rw [← dia_assoc]
+  rw [inv_dia]
+  rw [one_dia]
+  done
 
-lemma dia_inv [Group₁ G] (a : G) : a ⋄ a⁻¹ = 𝟙 :=
-  sorry
+lemma inv_of_inv [Group₁ G] {a : G} : a⁻¹⁻¹ = a := by
+  apply inv_eq_of_dia
+  rw [inv_dia]
+  done
+
+#check inv_eq_of_dia
+
+lemma dia_inv [Group₁ G] (a : G) : a ⋄ a⁻¹ = 𝟙 := by
+  rw [← inv_dia (a⁻¹)]
+  rw [inv_of_inv]
+  done
 
 
 
@@ -187,7 +201,14 @@ lemma Group₃.mul_inv {G : Type} [Group₃ G] {a : G} : a * a⁻¹ = 1 := by
 
 @[to_additive]
 lemma mul_left_cancel₃ {G : Type} [Group₃ G] {a b c : G} (h : a * b = a * c) : b = c := by
-  sorry
+  rw [← one_mul c]
+  rw [← Group₃.inv_mul a]
+  rw [mul_assoc₃ (a⁻¹) a c]
+  rw [← h]
+  rw [← mul_assoc₃]
+  rw [Group₃.inv_mul]
+  rw [one_mul]
+  done
 
 @[to_additive]
 lemma mul_right_cancel₃ {G : Type} [Group₃ G] {a b c : G} (h : b*a = c*a) : b = c := by
@@ -209,7 +230,11 @@ class Ring₃ (R : Type) extends AddGroup₃ R, Monoid₃ R, MulZeroClass R wher
 instance {R : Type} [Ring₃ R] : AddCommGroup₃ R :=
 { Ring₃.toAddGroup₃ with
   add_comm := by
-    sorry }
+    intros a b
+    sorry
+    done
+
+}
 
 instance : Ring₃ ℤ where
   add := (· + ·)
